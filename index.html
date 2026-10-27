@@ -320,7 +320,7 @@
           </article>
           <article class="project" data-project="vgi" role="button" tabindex="0" aria-expanded="false" aria-label="VGI Lab UROP Program 상세 설명 보기">
             <div class="project-visual" aria-label="프로젝트 이미지 영역"><div class="visual-frame"><span class="visual-node"></span></div></div>
-            <div class="project-info"><h4 class="project-title">VGI Lab UROP Program</h4><p class="project-summary">EgoHTR 영상에 PromptHMR을 적용하고 프레임·좌표계 정렬 후 SMPL-X 관절을 MPJPE로 평가</p></div>
+            <div class="project-info"><h4 class="project-title">VGI Lab UROP Program</h4><p class="project-summary">EgoHTR·PromptHMR의 SMPL-X 설정과 관절 인덱스 불일치를 찾아 정렬하고, 3D 관절을 MPJPE로 평가</p></div>
           </article>
         </div>
       </section>
@@ -467,64 +467,11 @@
       'vgi': {
         title:'VGI Lab UROP Program',
         paragraphs:[
-          '현재 EgoHTR의 egocentric 영상에 PromptHMR을 적용해 3D 인체 자세를 추정하고, 결과를 데이터셋의 정답 관절과 비교하는 연구를 진행하고 있습니다. 영상과 정답 데이터의 프레임을 맞추고, 서로 다른 관절 정의와 좌표 기준을 평가에 맞게 정리한 뒤 MPJPE와 시각 비교로 추정 결과를 살펴봅니다.',
-          'PromptHMR의 이미지 입력과 추론 과정을 확인하며, egocentric 영상처럼 몸 일부만 보이는 조건에서 모델이 어떤 오류를 내는지 분석하고 있습니다. 실험 코드와 변경사항은 Git으로 관리하며, 모델 적용과 데이터 전처리, 평가 기준을 함께 검토하는 연구 흐름을 익히고 있습니다.',
-          '현재 수행 중인 일은 기존 모델의 적용과 평가입니다. RGB와 LiDAR를 함께 활용하는 센서 퓨전은 향후 연구 관심사로 두고 있으며, 서로 다른 센서 관측을 연결하는 방법을 살펴보고 있습니다.',
-          "담당 및 검증: EgoHTR 데이터의 영상·정답 프레임 대응과 좌표계 정렬 원리를 분석하고, PromptHMR 결과와 GT 관절을 MPJPE로 비교·평가했습니다. 주요 파이프라인 코드는 AI 코딩 도구의 도움을 받아 작성하고 처리 흐름을 검토했습니다.",
-          "사용 기술: Python, PyTorch, PromptHMR, EgoHTR, SMPL-X, timestamp matching, coordinate transformation, MPJPE, Git을 활용했습니다.",
-          "결과: 데이터셋의 GT와 추정 결과의 MPJPE 비교를 완료했습니다. 정량 수치는 별도 실험 결과에서 확인할 수 있습니다."
+          'EgoHTR의 Meta Aria RGB 영상에 PromptHMR을 적용해 3D 인체 자세를 추정하고, 같은 시점의 GT 관절과 비교하는 평가 파이프라인을 구성했습니다.',
+          '처음에는 EgoHTR의 GT 파라미터를 PromptHMR과 같은 Neutral SMPL-X 설정으로 재생성해 관절을 비교했지만, GT와 재생성된 관절 사이에 차이가 남았습니다. 원인을 추적하며 PromptHMR은 Neutral, EgoHTR의 GT는 Male 설정을 사용하고 출력 관절 수와 인덱스 정의도 다르다는 점을 확인했습니다. 각 결과를 원래 SMPL-X 설정으로 처리하고 관절 인덱스를 같은 BODY_25 기준으로 대응시켜, 모델 설정과 인덱스 매핑에서 비롯된 차이를 거의 해소했습니다.',
+          '별도 root-relative 평가에서는 exo-cliff-stones_s4_xhall_01의 MPJPE가 86.18 mm, exo-high-object_s4_xhall_01은 72.60 mm로 계산됐습니다. 프레임·timestamp 대응과 카메라 및 MoCap 좌표계 변환을 적용해 GT와 예측 관절을 비교하고, Viser에서 결과를 확인했습니다.'
         ]
-      }
-    };
-
-    function closeProject(project) {
-      const panel=project.querySelector('.project-expanded-content');
-      const closeButton=project.querySelector('.project-close');
-      if (panel) {
-        panel.classList.remove('is-visible');
-        panel.classList.add('is-closing');
-      }
-      project.classList.remove('is-expanded');
-      project.setAttribute('role','button');
-      project.setAttribute('tabindex','0');
-      project.setAttribute('aria-expanded','false');
-      window.setTimeout(()=>{ panel?.remove(); closeButton?.remove(); },260);
-    }
-
-    function openProject(project, detail) {
-      project.querySelectorAll('.project-expanded-content,.project-close').forEach(element=>element.remove());
-      project.classList.add('is-expanded');
-      project.setAttribute('role','group');
-      project.setAttribute('tabindex','-1');
-      project.setAttribute('aria-expanded','true');
-      const panel=document.createElement('div');
-      panel.className='project-expanded-content';
-      panel.id='details-'+project.dataset.project;
-      panel.setAttribute('role','region');
-      panel.setAttribute('aria-label',detail.title+' 상세 설명');
-      detail.paragraphs.forEach(copy=>{
-        const paragraph=document.createElement('p');
-        paragraph.textContent=copy;
-        panel.append(paragraph);
-      });
-      project.append(panel);
-      const close=document.createElement('button');
-      close.className='project-close';
-      close.type='button';
-      close.setAttribute('aria-label','프로젝트 상세 닫기');
-      close.textContent='×';
-      close.addEventListener('click',event=>{
-        event.stopPropagation();
-        closeProject(project);
-      });
-      project.append(close);
-      requestAnimationFrame(()=>panel.classList.add('is-visible'));
-      window.setTimeout(()=>{
-        const rail=project.closest('.project-group-list');
-        if (!rail) return;
-        const left=project.getBoundingClientRect().left-rail.getBoundingClientRect().left+rail.scrollLeft;
-        rail.scrollTo({left,behavior:'smooth'});
-      },250);
+      }250);
     }
 
     function expandProject(project) {
