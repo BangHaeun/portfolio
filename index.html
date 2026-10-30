@@ -172,7 +172,7 @@
     .project-group-heading h3 { margin:0; font-size:clamp(24px,3vw,34px); line-height:1.25; font-weight:550; letter-spacing:-.055em; }
     .project-group-heading p { margin:0; color:#777; font-size:14px; }
     .project-group-list { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:18px; }
-    .project-group .project { min-height:0; display:flex; flex-direction:column; align-items:stretch; gap:19px; padding:18px; border:1px solid rgba(17,17,17,.08); border-radius:24px; background:rgba(255,255,255,.68); box-shadow:0 14px 38px rgba(17,17,17,.035); }
+    .project-group .project { position:relative; min-height:0; display:flex; flex-direction:column; align-items:stretch; gap:19px; padding:18px; border:1px solid rgba(17,17,17,.08); border-radius:24px; background:rgba(255,255,255,.68); box-shadow:0 14px 38px rgba(17,17,17,.035); }
     .project-group .project:nth-of-type(even) .project-visual { order:0; }
     .project-group .project-visual { min-height:190px; width:100%; aspect-ratio:1.75 / 1; }
     .project-group .project-visual > img { position:absolute; inset:0; width:100%; height:100%; display:block; object-fit:cover; object-position:center; }
@@ -471,7 +471,46 @@
           '처음에는 EgoHTR의 GT 파라미터를 PromptHMR과 같은 Neutral SMPL-X 설정으로 재생성해 관절을 비교했지만, GT와 재생성된 관절 사이에 차이가 남았습니다. 원인을 추적하며 PromptHMR은 Neutral, EgoHTR의 GT는 Male 설정을 사용하고 출력 관절 수와 인덱스 정의도 다르다는 점을 확인했습니다. 각 결과를 원래 SMPL-X 설정으로 처리하고 관절 인덱스를 같은 BODY_25 기준으로 대응시켜, 모델 설정과 인덱스 매핑에서 비롯된 차이를 거의 해소했습니다.',
           '별도 root-relative 평가에서는 exo-cliff-stones_s4_xhall_01의 MPJPE가 86.18 mm, exo-high-object_s4_xhall_01은 72.60 mm로 계산됐습니다. 프레임·timestamp 대응과 카메라 및 MoCap 좌표계 변환을 적용해 GT와 예측 관절을 비교하고, Viser에서 결과를 확인했습니다.'
         ]
-      }250);
+      }
+    };
+
+    function openProject(project, detail) {
+      const title = project.querySelector('.project-title')?.textContent.trim() || detail.title;
+      const closeButton = document.createElement('button');
+      closeButton.type = 'button';
+      closeButton.className = 'project-close';
+      closeButton.setAttribute('aria-label', title + ' 상세 설명 닫기');
+      closeButton.textContent = '닫기';
+      closeButton.addEventListener('click', event => {
+        event.stopPropagation();
+        closeProject(project);
+      });
+
+      const expandedContent = document.createElement('div');
+      expandedContent.className = 'project-expanded-content';
+      expandedContent.setAttribute('aria-label', title + ' 상세 설명');
+      detail.paragraphs.forEach(text => {
+        const paragraph = document.createElement('p');
+        paragraph.textContent = text;
+        expandedContent.append(paragraph);
+      });
+
+      project.classList.add('is-expanded');
+      project.setAttribute('aria-expanded', 'true');
+      project.setAttribute('aria-label', title + ' 상세 설명 열림');
+      project.append(closeButton, expandedContent);
+      requestAnimationFrame(() => expandedContent.classList.add('is-visible'));
+    }
+
+    function closeProject(project) {
+      project.classList.remove('is-expanded');
+      project.setAttribute('aria-expanded', 'false');
+      const title = project.querySelector('.project-title')?.textContent.trim() || '프로젝트';
+      project.setAttribute('aria-label', title + ' 상세 설명 보기');
+      const hadFocus = project.contains(document.activeElement);
+      project.querySelector('.project-close')?.remove();
+      project.querySelector('.project-expanded-content')?.remove();
+      if (hadFocus) project.focus();
     }
 
     function expandProject(project) {
